@@ -1,9 +1,11 @@
+import java.io.File;
 import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) {
         int choice = 0;
         boolean valid = true;
+        String fileName = "";
 
         String[] menu = { "========= Menu =========",
                 "1. Encrypt a file",
@@ -15,10 +17,11 @@ public class Main {
             displayMenu(menu);
             if (sc.hasNextInt()) {
                 choice = sc.nextInt();
+                sc.nextLine();
                 if (choice == 1) {
-                    System.out.println("1");
+                    String ValidFileName = checkFileValid(sc);
                 } else if (choice == 2) {
-                    System.out.println("2");
+                    String ValidFileName = checkFileValid(sc);
                 } else if (choice == 3) {
                     valid = false;
                     System.out.println("Goodbye!");
@@ -31,9 +34,6 @@ public class Main {
             }
         } while (valid);
 
-        // System.out.println("Enter file name (include .txt)");
-        // String fileName = sc.nextLine();
-
         sc.close();
     }
 
@@ -43,4 +43,24 @@ public class Main {
             System.out.println(menu[i]);
         }
     }
+
+    public static String checkFileValid(Scanner sc) {
+        String fileName = "";
+        File file;
+        boolean isValid = false;
+    
+        while (!isValid) {
+            System.out.println("Enter file name (include .txt): ");
+            fileName = sc.nextLine();
+            file = new File(fileName);
+            if (file.exists() && fileName.endsWith(".txt")) {
+                isValid = true; // File exists and has .txt extension
+            } else {
+                System.out.println("Invalid file name! Please enter a valid .txt file name.");
+            }
+        }
+    
+        return fileName;
+    }
+    
 }
