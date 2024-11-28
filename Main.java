@@ -1,5 +1,6 @@
 import java.io.File;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Base64;
 import java.util.Scanner;
@@ -8,6 +9,8 @@ import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
+
+// Resources used: https://www.baeldung.com/java-aes-encryption-decryption 
 
 public class Main {
     public static void main(String[] args) {
@@ -67,10 +70,16 @@ public class Main {
             System.out.println("Enter file name (include .txt): ");
             fileName = sc.nextLine();
             file = new File(fileName);
-            if (file.exists() && fileName.endsWith(".txt")) {
-                isValid = true; // File exists and has .txt extension
+
+            if (fileName.endsWith(".txt")) {
+                if (file.exists()) {
+                    // File exists and has .txt extension
+                    isValid = true;
+                } else {
+                    System.out.println("File does not exists! Try again!");
+                }
             } else {
-                System.out.println("Invalid file name! Please enter a valid .txt file name.");
+                System.out.println("Enter a valid file with the correct format (.txt)");
             }
         }
 
@@ -96,14 +105,21 @@ public class Main {
             cipher.init(Cipher.ENCRYPT_MODE, secretKey);
             byte[] encryptedBytes = cipher.doFinal(plaintext.getBytes());
 
-            // Save encrypted content to a text file
-            Files.write(Paths.get("ciphertext.txt"), Base64.getEncoder().encode(encryptedBytes));
+            // Save encrypted content to "ciphertext.txt" file
+            Path path = Paths.get("ciphertext.txt");
+            boolean fileExists = Files.exists(path);
+
+            Files.write(path, Base64.getEncoder().encode(encryptedBytes));
 
             // convert to a readable format(base 64)
             String encodedKey = Base64.getEncoder().encodeToString(secretKey.getEncoded());
 
             System.out.println("\nSecret key(Base 64): " + encodedKey);
-            System.out.println("File encrypted and saved to ciphertext.txt");
+            if (fileExists) {
+                System.out.println("ciphertext.txt content is updated!");
+            } else {
+                System.out.println("ciphertext.txt created and encrypted content is added!");
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -129,11 +145,18 @@ public class Main {
             cipher.init(Cipher.DECRYPT_MODE, secretKey);
             byte[] decryptedBytes = cipher.doFinal(Base64.getDecoder().decode(encryptedText));
 
-            // Write the decrypted content to plaintext.txt
-            Files.write(Paths.get("plaintext.txt"), decryptedBytes);
+            // Save decrypted content to "plaintext.txt" file
+            Path path = Paths.get("plaintext.txt");
+            boolean fileExists = Files.exists(path);
 
-            System.out.println("Decryption complete!");
-            System.out.println("Decrypted content saved to: plaintext.txt");
+            // Write the decrypted content to plaintext.txt
+            Files.write(path, decryptedBytes);
+
+            if (fileExists) {
+                System.out.println("plaintext.txt content is updated!");
+            } else {
+                System.out.println("plaintext.txt created and encrypted content is added!");
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
