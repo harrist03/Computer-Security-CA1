@@ -17,7 +17,6 @@ public class Main {
         try {
             int choice = 0;
             boolean valid = true;
-            String fileName = "";
 
             String[] menu = { "\n========= Menu =========",
                     "1. Encrypt a file",
@@ -157,8 +156,10 @@ public class Main {
             } else {
                 System.out.println("plaintext.txt created and encrypted content is added!");
             }
+        } catch (IllegalArgumentException e) {
+            System.out.println("Invalid key format. Please enter a valid base64 encoded key.");
         } catch (Exception e) {
-            e.printStackTrace();
+            System.out.println("Decryption failed. Please check the key and try again.");
         }
     }
 }
