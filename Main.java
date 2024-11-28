@@ -1,6 +1,10 @@
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.Base64;
 import java.util.Scanner;
 
+import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 
@@ -11,7 +15,7 @@ public class Main {
             boolean valid = true;
             String fileName = "";
 
-            String[] menu = { "========= Menu =========",
+            String[] menu = { "\n========= Menu =========",
                     "1. Encrypt a file",
                     "2. Decrypt a file",
                     "3. Quit",
@@ -23,7 +27,8 @@ public class Main {
                     choice = sc.nextInt();
                     sc.nextLine();
                     if (choice == 1) {
-                        // encryptFile(checkFileValid(sc));
+                        String ValidFileName = checkFileValid(sc);
+                        encryptFile(ValidFileName);
                     } else if (choice == 2) {
                         String ValidFileName = checkFileValid(sc);
                     } else if (choice == 3) {
@@ -75,5 +80,31 @@ public class Main {
         KeyGenerator keyGenerator = KeyGenerator.getInstance("AES");
         keyGenerator.init(128); // 128 bits
         return keyGenerator.generateKey();
+    }
+
+    // Task 2: Encrypt a file
+    public static void encryptFile(String file) {
+        try {
+            // generate the secret key
+            SecretKey secretKey = generateKey();
+            String plaintext = new String(Files.readAllBytes(Paths.get(file)));
+
+            // Encrypt the plaintext
+            Cipher cipher = Cipher.getInstance("AES");
+            cipher.init(Cipher.ENCRYPT_MODE, secretKey);
+            byte[] encryptedBytes = cipher.doFinal(plaintext.getBytes());
+
+            // Save encrypted content to a text file
+            Files.write(Paths.get("ciphertext.txt"), Base64.getEncoder().encode(encryptedBytes));
+
+            // convert to a readable format(base 64)
+            String encodedKey = Base64.getEncoder().encodeToString(secretKey.getEncoded());
+
+            System.out.println("\nSecret key(Base 64): " + encodedKey);
+            System.out.println("File encrypted and saved to ciphertext.txt");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
     }
 }
