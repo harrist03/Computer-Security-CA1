@@ -7,6 +7,7 @@ import java.util.Scanner;
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 
 public class Main {
     public static void main(String[] args) {
@@ -31,6 +32,7 @@ public class Main {
                         encryptFile(ValidFileName);
                     } else if (choice == 2) {
                         String ValidFileName = checkFileValid(sc);
+                        decryptFile(ValidFileName, sc);
                     } else if (choice == 3) {
                         valid = false;
                         System.out.println("Goodbye!");
@@ -105,6 +107,35 @@ public class Main {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
 
+    // Task 3: Decrypt a file
+    public static void decryptFile(String file, Scanner sc) {
+        try {
+            String randomKey = "";
+
+            System.out.println("Enter a valid secret key: ");
+            randomKey = sc.next();
+
+            // Decode the AES key from Base64
+            byte[] decodedKey = Base64.getDecoder().decode(randomKey);
+            SecretKey secretKey = new SecretKeySpec(decodedKey, "AES");
+
+            // Read the encrypted file
+            String encryptedText = new String(Files.readAllBytes(Paths.get(file)));
+
+            // Decrypt the content
+            Cipher cipher = Cipher.getInstance("AES");
+            cipher.init(Cipher.DECRYPT_MODE, secretKey);
+            byte[] decryptedBytes = cipher.doFinal(Base64.getDecoder().decode(encryptedText));
+
+            // Write the decrypted content to plaintext.txt
+            Files.write(Paths.get("plaintext.txt"), decryptedBytes);
+
+            System.out.println("Decryption complete!");
+            System.out.println("Decrypted content saved to: plaintext.txt");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }
