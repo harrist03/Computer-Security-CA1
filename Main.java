@@ -95,29 +95,35 @@ public class Main {
     // Task 2: Encrypt a file
     public static void encryptFile(String file) {
         try {
-            // generate the secret key
-            SecretKey secretKey = generateKey();
+            // Convert to file content to plain text
             String plaintext = new String(Files.readAllBytes(Paths.get(file)));
 
-            // Encrypt the plaintext
-            Cipher cipher = Cipher.getInstance("AES");
-            cipher.init(Cipher.ENCRYPT_MODE, secretKey);
-            byte[] encryptedBytes = cipher.doFinal(plaintext.getBytes());
+            if (plaintext.length() > 0) {
+                // generate the secret key
+                SecretKey secretKey = generateKey();
 
-            // Save encrypted content to "ciphertext.txt" file
-            Path path = Paths.get("ciphertext.txt");
-            boolean fileExists = Files.exists(path);
+                // Encrypt the plaintext
+                Cipher cipher = Cipher.getInstance("AES");
+                cipher.init(Cipher.ENCRYPT_MODE, secretKey);
+                byte[] encryptedBytes = cipher.doFinal(plaintext.getBytes());
 
-            Files.write(path, Base64.getEncoder().encode(encryptedBytes));
+                // Save encrypted content to "ciphertext.txt" file
+                Path path = Paths.get("ciphertext.txt");
+                boolean fileExists = Files.exists(path);
 
-            // convert to a readable format(base 64)
-            String encodedKey = Base64.getEncoder().encodeToString(secretKey.getEncoded());
+                Files.write(path, Base64.getEncoder().encode(encryptedBytes));
 
-            System.out.println("\nSecret key(Base 64): " + encodedKey);
-            if (fileExists) {
-                System.out.println("ciphertext.txt content is updated!");
+                // convert to a readable format(base 64)
+                String encodedKey = Base64.getEncoder().encodeToString(secretKey.getEncoded());
+
+                System.out.println("\nSecret key(Base 64): " + encodedKey);
+                if (fileExists) {
+                    System.out.println("ciphertext.txt content is updated!");
+                } else {
+                    System.out.println("ciphertext.txt created and encrypted content is added!");
+                }
             } else {
-                System.out.println("ciphertext.txt created and encrypted content is added!");
+                System.out.println("File to be encrypted is empty! Encryption aborted.");
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -139,22 +145,27 @@ public class Main {
             // Read the encrypted file
             String encryptedText = new String(Files.readAllBytes(Paths.get(file)));
 
-            // Decrypt the content
-            Cipher cipher = Cipher.getInstance("AES");
-            cipher.init(Cipher.DECRYPT_MODE, secretKey);
-            byte[] decryptedBytes = cipher.doFinal(Base64.getDecoder().decode(encryptedText));
+            if (encryptedText.length() > 0) {
 
-            // Save decrypted content to "plaintext.txt" file
-            Path path = Paths.get("plaintext.txt");
-            boolean fileExists = Files.exists(path);
+                // Decrypt the content
+                Cipher cipher = Cipher.getInstance("AES");
+                cipher.init(Cipher.DECRYPT_MODE, secretKey);
+                byte[] decryptedBytes = cipher.doFinal(Base64.getDecoder().decode(encryptedText));
 
-            // Write the decrypted content to plaintext.txt
-            Files.write(path, decryptedBytes);
+                // Save decrypted content to "plaintext.txt" file
+                Path path = Paths.get("plaintext.txt");
+                boolean fileExists = Files.exists(path);
 
-            if (fileExists) {
-                System.out.println("plaintext.txt content is updated!");
+                // Write the decrypted content to plaintext.txt
+                Files.write(path, decryptedBytes);
+
+                if (fileExists) {
+                    System.out.println("plaintext.txt content is updated!");
+                } else {
+                    System.out.println("plaintext.txt created and encrypted content is added!");
+                }
             } else {
-                System.out.println("plaintext.txt created and encrypted content is added!");
+                System.out.println("ciphertext.txt is empty! Decryption aborted.");
             }
         } catch (IllegalArgumentException e) {
             System.out.println("Invalid key format. Please enter a valid base64 encoded key.");
