@@ -3,6 +3,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Base64;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Scanner;
 
 import javax.crypto.Cipher;
@@ -10,9 +12,14 @@ import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
-// Resources used: https://www.baeldung.com/java-aes-encryption-decryption 
+// Resources used: https://www.baeldung.com/java-aes-encryption-decryption
+// Additional features: Storing a secret key between two parties and option to view a 
+// secret key using a password shared between two parties. 
 
 public class Main {
+    // hashmap to store secret key and password
+    private static final Map<String, String> passwordKeys = new HashMap<>();
+
     public static void main(String[] args) {
         try {
             int choice = 0;
@@ -21,7 +28,9 @@ public class Main {
             String[] menu = { "\n========= Menu =========",
                     "1. Encrypt a file",
                     "2. Decrypt a file",
-                    "3. Quit",
+                    "3. Store a secret key",
+                    "4. View a secret key",
+                    "5. Quit",
                     "========================" };
             Scanner sc = new Scanner(System.in);
             do {
@@ -36,6 +45,10 @@ public class Main {
                         String ValidFileName = checkFileValid(sc);
                         decryptFile(ValidFileName, sc);
                     } else if (choice == 3) {
+                        storeSecretKey(sc);
+                    } else if (choice == 4) {
+                        viewSecretKey(sc);
+                    } else if (choice == 5) {
                         valid = false;
                         System.out.println("Goodbye!");
                     } else {
@@ -171,6 +184,39 @@ public class Main {
             System.out.println("Invalid key format. Please enter a valid base64 encoded key.");
         } catch (Exception e) {
             System.out.println("Decryption failed. Please check the key and try again.");
+        }
+    }
+
+    // Additional features
+    public static void storeSecretKey(Scanner sc) {
+        String secretKey = "", password = "";
+        try {
+            System.out.println("Enter secret key(base 64) to be stored: ");
+            secretKey = sc.next();
+            System.out.println("Enter a password: ");
+            password = sc.next();
+
+            passwordKeys.put(password, secretKey);
+
+            System.out.println("Secret key is safely stored!");
+        } catch (Exception e) {
+            System.out.println("Error storing key: " + e.getMessage());
+        }
+    }
+
+    public static void viewSecretKey(Scanner sc) {
+        String password = "";
+        try {
+            System.out.println("Enter password to view: ");
+            password = sc.next();
+
+            if (passwordKeys.containsKey(password)) {
+                System.out.println("Your secret key is: " + passwordKeys.get(password));
+            } else {
+                System.out.println("Password is incorrect!");
+            }
+        } catch (Exception e) {
+            System.out.println("Error retrieving key: " + e.getMessage());
         }
     }
 }
