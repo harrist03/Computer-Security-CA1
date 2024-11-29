@@ -193,9 +193,23 @@ public class Main {
         try {
             System.out.println("Enter secret key(base 64) to be stored: ");
             secretKey = sc.next();
-            System.out.println("Enter a password: ");
-            password = sc.next();
 
+            while (!isValidPassword(password)) {
+                System.out.println("Enter a password: ");
+                password = sc.next();
+
+                if (isValidPassword(password)) {
+                    System.out.println("Password is valid!");
+                } else {
+                    System.out.println("Password is invalid! It must meet the following requirements:");
+                    System.out.println("- At least 8 characters long");
+                    System.out.println("- Contains at least one uppercase letter");
+                    System.out.println("- Contains at least one lowercase letter");
+                    System.out.println("- Contains at least one special symbol (@#$%^&+=!)");
+                    System.out.println("- Contains at least one number");
+                }
+            }
+            // store the password and the secret key
             passwordKeys.put(password, secretKey);
 
             System.out.println("Secret key is safely stored!");
@@ -218,5 +232,16 @@ public class Main {
         } catch (Exception e) {
             System.out.println("Error retrieving key: " + e.getMessage());
         }
+    }
+
+    public static boolean isValidPassword(String password) {
+        // Check if the password is at least 8 characters long
+        if (password.length() < 8) {
+            return false;
+        }
+        // one upper, one lower, one digit, one special symbol
+        String regex = "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[@#$%^&+=!]).{8,}$";
+
+        return password.matches(regex);
     }
 }
