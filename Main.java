@@ -1,3 +1,5 @@
+// SD2B, Harris Teh Kai Ze
+
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -13,8 +15,10 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
 // Resources used: https://www.baeldung.com/java-aes-encryption-decryption
+//                 https://www.w3schools.com/java/java_hashmap.asp
 // Additional features: Storing a secret key between two parties and option to view a 
-// secret key using a password shared between two parties. 
+//                      secret key using a password shared between two parties.
+//                      Password and Secret key validation is created.
 
 public class Main {
     // hashmap to store secret key and password
@@ -24,7 +28,7 @@ public class Main {
         try {
             int choice = 0;
             boolean valid = true;
-
+            
             String[] menu = { "\n========= Menu =========",
                     "1. Encrypt a file",
                     "2. Decrypt a file",
@@ -34,6 +38,7 @@ public class Main {
                     "========================" };
             Scanner sc = new Scanner(System.in);
             do {
+                // method to display menu
                 displayMenu(menu);
                 if (sc.hasNextInt()) {
                     choice = sc.nextInt();
@@ -56,7 +61,8 @@ public class Main {
                     }
                 } else {
                     System.out.println("Invalid input! Please enter a number.");
-                    sc.next(); // clear the invalid input
+                    // clear the invalid input
+                    sc.next();
                 }
             } while (valid);
 
@@ -82,7 +88,7 @@ public class Main {
             System.out.println("Enter file name (include .txt): ");
             fileName = sc.nextLine();
             file = new File(fileName);
-
+            
             if (fileName.endsWith(".txt")) {
                 if (file.exists()) {
                     // File exists and has .txt extension
@@ -118,16 +124,18 @@ public class Main {
                 while (!valid) {
                     System.out.println("Do you have a secret key? (yes/no)");
                     choice = sc.next();
+                    // if user doesn't have a secret key
                     if (choice.toLowerCase().equals("no")) {
                         System.out.println("Secret key is auto-generated for you!");
                         // generate the secret key
                         secretKey = generateKey();
                         valid = true;
+                    // if user already has a secret key    
                     } else if (choice.toLowerCase().equals("yes")) {
-                        // while user key string is not valid
                         while (!isValidSecretKey(userKeyString)) {
                             System.out.println("Enter your secret key(Base64): ");
                             userKeyString = sc.next();
+                            // if user's secret key is valid
                             if (isValidSecretKey(userKeyString)) {
                                 // Decode the Base64 key into bytes and create a SecretKey object
                                 byte[] keyBytes = Base64.getDecoder().decode(userKeyString);
@@ -262,7 +270,7 @@ public class Main {
         try {
             System.out.println("Enter password to view: ");
             password = sc.next();
-
+            // checks if passwordKeys contains the password
             if (passwordKeys.containsKey(password)) {
                 System.out.println("Your secret key is: " + passwordKeys.get(password));
             } else {
