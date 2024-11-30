@@ -40,7 +40,7 @@ public class Main {
                     sc.nextLine();
                     if (choice == 1) {
                         String ValidFileName = checkFileValid(sc);
-                        encryptFile(ValidFileName);
+                        encryptFile(ValidFileName, sc);
                     } else if (choice == 2) {
                         String ValidFileName = checkFileValid(sc);
                         decryptFile(ValidFileName, sc);
@@ -106,15 +106,41 @@ public class Main {
     }
 
     // Task 2: Encrypt a file
-    public static void encryptFile(String file) {
+    public static void encryptFile(String file, Scanner sc) {
+        String choice = "", userKeyString = "";
+        SecretKey secretKey = null;
+        boolean valid = false;
         try {
             // Convert to file content to plain text
             String plaintext = new String(Files.readAllBytes(Paths.get(file)));
-
+            // if plaintext is not empty
             if (plaintext.length() > 0) {
-                // generate the secret key
-                SecretKey secretKey = generateKey();
-
+                while (!valid) {
+                    System.out.println("Do you have a secret key? (yes/no)");
+                    choice = sc.next();
+                    if (choice.toLowerCase().equals("no")) {
+                        System.out.println("Secret key is auto-generated for you!");
+                        // generate the secret key
+                        secretKey = generateKey();
+                        valid = true;
+                    } else if (choice.toLowerCase().equals("yes")) {
+                        // while user key string is not valid
+                        while (!isValidSecretKey(userKeyString)) {
+                            System.out.println("Enter your secret key(Base64): ");
+                            userKeyString = sc.next();
+                            if (isValidSecretKey(userKeyString)) {
+                                // Decode the Base64 key into bytes and create a SecretKey object
+                                byte[] keyBytes = Base64.getDecoder().decode(userKeyString);
+                                secretKey = new SecretKeySpec(keyBytes, "AES");
+                            } else {
+                                System.out.println("Invalid Base64 format! Try again!");
+                            }
+                        }
+                        valid = true;
+                    } else {
+                        System.out.println("Invalid input! Try again!");
+                    }
+                }
                 // Encrypt the plaintext
                 Cipher cipher = Cipher.getInstance("AES");
                 cipher.init(Cipher.ENCRYPT_MODE, secretKey);
@@ -148,8 +174,15 @@ public class Main {
         try {
             String randomKey = "";
 
-            System.out.println("Enter a valid secret key: ");
-            randomKey = sc.next();
+            while (!isValidSecretKey(randomKey)) {
+                System.out.println("Enter a valid secret key(base 64): ");
+                randomKey = sc.next();
+                if (isValidSecretKey(randomKey)) {
+                    System.out.println("Secret key is valid!");
+                } else {
+                    System.out.println("Invalid Base64 format! Try again!");
+                }
+            }
 
             // Decode the AES key from Base64
             byte[] decodedKey = Base64.getDecoder().decode(randomKey);
@@ -159,7 +192,6 @@ public class Main {
             String encryptedText = new String(Files.readAllBytes(Paths.get(file)));
 
             if (encryptedText.length() > 0) {
-
                 // Decrypt the content
                 Cipher cipher = Cipher.getInstance("AES");
                 cipher.init(Cipher.DECRYPT_MODE, secretKey);
@@ -193,7 +225,14 @@ public class Main {
         try {
             System.out.println("Enter secret key(base 64) to be stored: ");
             secretKey = sc.next();
-
+            // function to check if secret key is valid
+            if (isValidSecretKey(secretKey)) {
+                System.out.println("Secret key is valid!");
+            } else {
+                System.out.println("Invalid Base64 format! Aborted!");
+                return;
+            }
+            // password doesn't match the regex
             while (!isValidPassword(password)) {
                 System.out.println("Enter a password: ");
                 password = sc.next();
@@ -227,7 +266,7 @@ public class Main {
             if (passwordKeys.containsKey(password)) {
                 System.out.println("Your secret key is: " + passwordKeys.get(password));
             } else {
-                System.out.println("Password is incorrect!");
+                System.out.println("Invalid password! Aborted!");
             }
         } catch (Exception e) {
             System.out.println("Error retrieving key: " + e.getMessage());
@@ -243,5 +282,17 @@ public class Main {
         String regex = "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[@#$%^&+=!]).{8,}$";
 
         return password.matches(regex);
+    }
+
+    public static boolean isValidSecretKey(String base64Key) {
+        try {
+            // Decode the Base64 key
+            byte[] keyBytes = Base64.getDecoder().decode(base64Key);
+
+            // Check if the key length is valid for AES
+            return keyBytes.length == 16 || keyBytes.length == 24 || keyBytes.length == 32;
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
     }
 }
