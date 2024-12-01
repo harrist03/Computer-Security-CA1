@@ -19,6 +19,7 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
 // Resources used: https://www.baeldung.com/java-aes-encryption-decryption
+//                 https://stackoverflow.com/questions/18228579/how-to-create-a-secure-random-aes-key-in-java
 //                 https://www.w3schools.com/java/java_hashmap.asp
 // Additional features: Storing a secret key between two parties and option to view a 
 //                      secret key using a password shared between two parties.
@@ -267,19 +268,13 @@ public class Main {
 
     public static void viewSecretKey(Scanner sc) {
         String password = "", userID = "";
-        boolean valid = false;
         try {
-            do {
-                System.out.println("Enter your user ID: ");
-                userID = sc.nextLine();
-                valid = isValidUserID(userID);
-            } while (!valid);
+            // no validation needed to increase security
+            System.out.println("Enter your user ID: ");
+            userID = sc.nextLine();
 
-            do {
-                System.out.println("Enter password to view: ");
-                password = sc.nextLine();
-                valid = isValidPassword(password);
-            } while (!valid);
+            System.out.println("Enter password to view: ");
+            password = sc.nextLine();
 
             // Check if the userID and password exist in the map
             for (Map.Entry<String, String> entry : passwordKeys.entrySet()) {
