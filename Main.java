@@ -114,7 +114,7 @@ public class Main {
     // Generate a random AES key
     public static SecretKey generateKey() throws Exception {
         KeyGenerator keyGenerator = KeyGenerator.getInstance("AES");
-        keyGenerator.init(128); // 128 bits
+        keyGenerator.init(128); // 128 bits or 16 bytes
         return keyGenerator.generateKey();
     }
 
@@ -122,7 +122,7 @@ public class Main {
     public static void encryptFile(String file, Scanner sc) {
         String choice = "", userKeyString = "";
         SecretKey secretKey = null;
-        boolean valid = false;
+        boolean valid = false, UserValidKey = false;
         try {
             // Convert to file content to plain text
             String plaintext = new String(Files.readAllBytes(Paths.get(file)));
@@ -130,27 +130,23 @@ public class Main {
             if (plaintext.length() > 0) {
                 while (!valid) {
                     System.out.println("Do you have a secret key? (yes/no)");
-                    choice = sc.next();
+                    choice = sc.nextLine();
                     // if user doesn't have a secret key
                     if (choice.toLowerCase().equals("no")) {
-                        System.out.println("Secret key is auto-generated for you!");
+                        System.out.println("A 16 byte secret key is auto-generated for you!");
                         // generate the secret key
                         secretKey = generateKey();
                         valid = true;
                         // if user already has a secret key
                     } else if (choice.toLowerCase().equals("yes")) {
-                        while (!isValidSecretKey(userKeyString)) {
-                            System.out.println("Enter your secret key(Base64): ");
-                            userKeyString = sc.next();
-                            // if user's secret key is valid
-                            if (isValidSecretKey(userKeyString)) {
-                                // Decode the Base64 key into bytes and create a SecretKey object
-                                byte[] keyBytes = Base64.getDecoder().decode(userKeyString);
-                                secretKey = new SecretKeySpec(keyBytes, "AES");
-                            } else {
-                                System.out.println("Invalid Base64 format! Try again!");
-                            }
-                        }
+                        do {
+                            System.out.println("Enter your secret key(base 64): ");
+                            userKeyString = sc.nextLine();
+                            UserValidKey = isValidSecretKey(userKeyString);
+                        } while (!UserValidKey);
+                        // Decode the Base64 key into bytes and create a SecretKey object
+                        byte[] keyBytes = Base64.getDecoder().decode(userKeyString);
+                        secretKey = new SecretKeySpec(keyBytes, "AES");
                         valid = true;
                     } else {
                         System.out.println("Invalid input! Try again!");
@@ -188,16 +184,13 @@ public class Main {
     public static void decryptFile(String file, Scanner sc) {
         try {
             String randomKey = "";
+            boolean valid = false;
 
-            while (!isValidSecretKey(randomKey)) {
-                System.out.println("Enter a valid secret key(base 64): ");
-                randomKey = sc.next();
-                if (isValidSecretKey(randomKey)) {
-                    System.out.println("Secret key is valid!");
-                } else {
-                    System.out.println("Invalid Base64 format! Try again!");
-                }
-            }
+            do {
+                System.out.println("Enter your secret key(base 64): ");
+                randomKey = sc.nextLine();
+                valid = isValidSecretKey(randomKey);
+            } while (!valid);
 
             // Decode the AES key from Base64
             byte[] decodedKey = Base64.getDecoder().decode(randomKey);
@@ -237,47 +230,29 @@ public class Main {
     // Additional features
     public static void storeSecretKey(Scanner sc) {
         String secretKey = "", password = "", userID = "";
+        boolean valid = false;
         try {
             do {
                 System.out.println("Enter a unique user ID (no spaces allowed): ");
                 userID = sc.nextLine();
-
-                if (userID.contains(" ") || !isValidUserID(userID)) {
-                    System.out.println("User ID is invalid! It must meet the following requirements:");
-                    System.out.println("- Must be unique! User ID could already exists!");
-                    System.out.println("- At least 6 characters long");
-                    System.out.println("- No spaces are allowed");
-                }
-            } while (!isValidUserID(userID));
+                valid = isValidUserID(userID);
+            } while (!valid);
 
             // User ID is valid and unique, add it to the list
             userIDs.add(userID);
             System.out.println("User ID is created!");
 
-            System.out.println("Enter secret key(base 64) to be stored: ");
-            secretKey = sc.nextLine();
-            // function to check if secret key is valid
-            if (isValidSecretKey(secretKey)) {
-                System.out.println("Secret key is valid!");
-            } else {
-                System.out.println("Invalid Base64 format! Aborted!");
-                return;
-            }
+            do {
+                System.out.println("Enter secret key(base 64) to be stored: ");
+                secretKey = sc.nextLine();
+                valid = isValidSecretKey(secretKey);
+            } while (!valid);
 
             do {
                 System.out.println("Enter a password: ");
                 password = sc.nextLine();
-    
-                if (password.contains(" ") || !isValidPassword(password)) {
-                    System.out.println("Password is invalid! It must meet the following requirements:");
-                    System.out.println("- At least 8 characters long");
-                    System.out.println("- Contains at least one uppercase letter");
-                    System.out.println("- Contains at least one lowercase letter");
-                    System.out.println("- Contains at least one special symbol (@#$%^&+=!)");
-                    System.out.println("- Contains at least one number");
-                    System.out.println("- No spaces are allowed");
-                }
-            } while (!isValidPassword(password));
+                valid = isValidPassword(password);
+            } while (!valid);
             // generate salt and hash password
             String salt = generateSalt();
             String hashedPassword = hashPassword(userID, password, salt);
@@ -292,11 +267,20 @@ public class Main {
 
     public static void viewSecretKey(Scanner sc) {
         String password = "", userID = "";
+        boolean valid = false;
         try {
-            System.out.println("Enter your User ID: ");
-            userID = sc.nextLine();
-            System.out.println("Enter password to view: ");
-            password = sc.next();
+            do {
+                System.out.println("Enter your user ID: ");
+                userID = sc.nextLine();
+                valid = isValidUserID(userID);
+            } while (!valid);
+
+            do {
+                System.out.println("Enter password to view: ");
+                password = sc.nextLine();
+                valid = isValidPassword(password);
+            } while (!valid);
+
             // Check if the userID and password exist in the map
             for (Map.Entry<String, String> entry : passwordKeys.entrySet()) {
                 String[] keyParts = entry.getKey().split(":");
@@ -324,18 +308,31 @@ public class Main {
     }
 
     public static boolean isValidUserID(String userID) {
-        return userID.length() >= 6 && !userIDs.contains(userID);
+        if (userID.contains(" ") || userID.length() < 6 || userIDs.contains(userID)) {
+            System.out.println("User ID is invalid! It must meet the following requirements:");
+            System.out.println("- Must be unique! User ID could already exists!");
+            System.out.println("- At least 6 characters long");
+            System.out.println("- No spaces are allowed");
+            return false;
+        }
+        return true;
     }
 
     public static boolean isValidPassword(String password) {
-        // Check if the password is at least 8 characters long
-        if (password.length() < 8) {
-            return false;
-        }
         // one upper, one lower, one digit, one special symbol
         String regex = "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[@#$%^&+=!]).{8,}$";
 
-        return password.matches(regex);
+        if (password.length() < 8 || password.contains(" ") || !password.matches(regex)) {
+            System.out.println("Password is invalid! It must meet the following requirements:");
+            System.out.println("- At least 8 characters long");
+            System.out.println("- Contains at least one uppercase letter");
+            System.out.println("- Contains at least one lowercase letter");
+            System.out.println("- Contains at least one special symbol (@#$%^&+=!)");
+            System.out.println("- Contains at least one number");
+            System.out.println("- No spaces are allowed");
+            return false;
+        }
+        return true;
     }
 
     public static boolean isValidSecretKey(String base64Key) {
@@ -343,9 +340,20 @@ public class Main {
             // Decode the Base64 key
             byte[] keyBytes = Base64.getDecoder().decode(base64Key);
 
-            // Check if the key length is valid for AES
-            return keyBytes.length == 16 || keyBytes.length == 24 || keyBytes.length == 32;
+            if (base64Key.contains(" ") || keyBytes.length != 16) {
+                System.out.println("Secret key is Invalid! It must meet the following requirements:");
+                System.out.println("- Must be valid Base64 format");
+                System.out.println("- Must be the following format (16 bytes)");
+                System.out.println("- No spaces are allowed");
+                return false;
+            }
+            System.out.println("Secret key is valid!");
+            return true;
         } catch (IllegalArgumentException e) {
+            System.out.println("Secret key is Invalid! It must meet the following requirements:");
+            System.out.println("- Must be valid Base64 format");
+            System.out.println("- Must be the following format (16 bytes)");
+            System.out.println("- No spaces are allowed");
             return false;
         }
     }
@@ -362,13 +370,8 @@ public class Main {
     // Generate a unique salt (random for each user)
     public static String generateSalt() {
         SecureRandom random = new SecureRandom();
-        byte[] salt = new byte[16]; // 128-bit salt
+        byte[] salt = new byte[16]; // 16 byte salt
         random.nextBytes(salt);
         return Base64.getEncoder().encodeToString(salt);
-    }
-
-    // method to check for spaces
-    public static boolean checkForSpace(String text) {
-        return text.contains(" ");
     }
 }
