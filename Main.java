@@ -25,7 +25,7 @@ import javax.crypto.spec.SecretKeySpec;
 //                      secret key using a password shared between two parties.
 //                      Password and Secret key validation is created.
 //                      Another problem is also created, users might have the same password.
-//                      Therefore, we use hashing and salting to solve this.
+//                      Therefore, a user-id input is created, password hashing and salting to increase security.
 
 public class Main {
     // global variables
