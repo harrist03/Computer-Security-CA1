@@ -1,5 +1,7 @@
 // SD2B, Harris Teh Kai Ze
 
+package CA1;
+
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
