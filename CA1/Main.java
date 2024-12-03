@@ -67,7 +67,7 @@ public class Main {
                         valid = false;
                         System.out.println("Goodbye!");
                     } else {
-                        System.out.println("\nInvalid input! Enter numbers 1-3.");
+                        System.out.println("\nInvalid input! Enter numbers 1-5.");
                     }
                 } else {
                     System.out.println("Invalid input! Please enter a number.");
@@ -95,7 +95,7 @@ public class Main {
         boolean isValid = false;
 
         while (!isValid) {
-            System.out.println("Enter file name (include .txt): ");
+            System.out.println("Enter path file name (include .txt): ");
             fileName = sc.nextLine();
             file = new File(fileName);
 
@@ -161,7 +161,7 @@ public class Main {
                 byte[] encryptedBytes = cipher.doFinal(plaintext.getBytes());
 
                 // Save encrypted content to "ciphertext.txt" file
-                Path path = Paths.get("ciphertext.txt");
+                Path path = Paths.get("CA1/ciphertext.txt");
                 boolean fileExists = Files.exists(path);
 
                 Files.write(path, Base64.getEncoder().encode(encryptedBytes));
@@ -209,7 +209,7 @@ public class Main {
                 byte[] decryptedBytes = cipher.doFinal(Base64.getDecoder().decode(encryptedText));
 
                 // Save decrypted content to "plaintext.txt" file
-                Path path = Paths.get("plaintext.txt");
+                Path path = Paths.get("CA1/plaintext.txt");
                 boolean fileExists = Files.exists(path);
 
                 // Write the decrypted content to plaintext.txt
